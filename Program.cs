@@ -34,7 +34,7 @@ namespace ValiantBot
             //Initialize Client
             var discord = new DiscordClient(new DiscordConfiguration()
             {
-                Token = $ClientToken,
+                Token = dConfig.ClientToken,
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
