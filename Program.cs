@@ -30,10 +30,11 @@ namespace ValiantBot
             DConfig? dConfig =
                 await JsonSerializer.DeserializeAsync<DConfig>(openStream);
 
+            
             //Initialize Client
             var discord = new DiscordClient(new DiscordConfiguration()
             {
-                Token = dConfig.ClientToken,
+                Token = ClientToken,
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
