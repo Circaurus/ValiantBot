@@ -25,10 +25,10 @@ namespace ValiantBot
         static async Task MainAsync()
         {
 
-            string fileName = Path.Combine(Environment.CurrentDirectory, "dconfig.json");
+            /*string fileName = Path.Combine(Environment.CurrentDirectory, "dconfig.json");
             using FileStream openStream = File.OpenRead(fileName);
             DConfig? dConfig =
-                await JsonSerializer.DeserializeAsync<DConfig>(openStream);
+                await JsonSerializer.DeserializeAsync<DConfig>(openStream);*/
 
             
             //Initialize Client
