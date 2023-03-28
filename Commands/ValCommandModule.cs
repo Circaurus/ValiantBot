@@ -18,15 +18,15 @@ public class PlayerProfile
     public string? FavClip { get; set; }
 }
 
-public class ProfileManager : ValCommandModule
+public class ProfileManager : CommonFunctions
 {
     string? currentRank;
 
-    private TaskCompletionSource<string> _rankSetTask;
-    private TaskCompletionSource<string> _mainSetTask;
+    private Dictionary<string, TaskCompletionSource<string>> _rankSetTask;
+    private Dictionary<string, TaskCompletionSource<string>> _mainSetTask;
 
 
-    public ProfileManager(TaskCompletionSource<string> rankSetTask, TaskCompletionSource<string> mainSetTask)
+    public ProfileManager(Dictionary<string, TaskCompletionSource<string>> rankSetTask, Dictionary<string, TaskCompletionSource<string>> mainSetTask)
     {
         _rankSetTask = rankSetTask;
         _mainSetTask = mainSetTask;
@@ -132,15 +132,24 @@ public class ProfileManager : ValCommandModule
                 "rank_radiant")
         };
 
+        if (!_rankSetTask.ContainsKey(playerID))
+        {
+            _rankSetTask[playerID] = new TaskCompletionSource<string>();
+        }
+
         // Make the dropdown
         var dropdown = new DiscordSelectComponent("dropdown", null, RankOptions, false, 1, 1);
 
         await com.Channel.SendMessageAsync(BuildDropMessage("Please select your rank.", dropdown));
 
-        playerProfile.ValRank = _rankSetTask.Task.Result;
+        playerProfile.ValRank = _rankSetTask[playerID].Task.Result;
 
         await com.Channel.SendMessageAsync(BuildSimpleEmbed("Rank Set!"));
 
+        if (_rankSetTask.ContainsKey(playerID))
+        {
+            _rankSetTask.Remove(playerID);
+        }
 
         string writeFileName = "Data/UserIDs/" + playerID + ".json";
         using FileStream WriteStream = File.Create(writeFileName);
@@ -248,15 +257,25 @@ public class ProfileManager : ValCommandModule
                 "agent_killjoy")
         };
 
+        if (!_mainSetTask.ContainsKey(playerID))
+        {
+            _mainSetTask[playerID] = new TaskCompletionSource<string>();
+        }
+
         // Make the dropdown
         var dropdown = new DiscordSelectComponent("dropdown", null, MainOptions, false, 1, 1);
 
         await com.Channel.SendMessageAsync(BuildDropMessage("Please select your main.", dropdown));
 
-        playerProfile.ValMain = _mainSetTask.Task.Result;
+        playerProfile.ValMain = _mainSetTask[playerID].Task.Result;
+
 
         await com.Channel.SendMessageAsync(BuildSimpleEmbed("Main Set!"));
 
+        if (_mainSetTask.ContainsKey(playerID))
+        {
+            _mainSetTask.Remove(playerID);
+        }
 
         string writeFileName = "Data/UserIDs/" + playerID + ".json";
         using FileStream WriteStream = File.Create(writeFileName);
@@ -264,9 +283,21 @@ public class ProfileManager : ValCommandModule
         await WriteStream.DisposeAsync();
     }
 
-    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null)
+    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null)
     {
-        string playerID = com.User.Id.ToString();
+        string playerID;
+        string playerUsername;
+        if (contcom != null)
+        {
+            playerID = contcom.TargetUser.Id.ToString();
+            playerUsername = contcom.TargetUser.Username;
+        }
+        else
+        {
+            playerID = com.User.Id.ToString();
+            playerUsername = com.User.Username;
+        }
+        
 
         string fileName = "Data/UserIDs/" + playerID + ".json";
         using FileStream openStream = File.OpenRead(fileName);
@@ -340,7 +371,7 @@ public class ProfileManager : ValCommandModule
         DiscordColor color = new DiscordColor(colors[playerProfile.ValMain]);
 
         var embuilder = new DiscordEmbedBuilder()
-            .WithTitle(com.User.Username + "'s Valorant Profile")
+            .WithTitle(playerUsername + "'s Valorant Profile")
             .WithFooter(playerProfile.ValName)
             .WithThumbnail(ranks[playerProfile.ValRank])
             .WithImageUrl(agents[playerProfile.ValMain])
@@ -358,7 +389,7 @@ public class ProfileManager : ValCommandModule
     }
 }
 
-public class ValCommandModule : ApplicationCommandModule
+public class CommonFunctions
 {
     public DiscordEmbedBuilder BuildSimpleEmbed(string text)
     {
@@ -374,7 +405,11 @@ public class ValCommandModule : ApplicationCommandModule
             .AddComponents(dropdown);
         return mbuilder;
     }
+}
 
+public class ValCommandModule : ApplicationCommandModule
+{
+    CommonFunctions comfunc = new CommonFunctions();
 
     [SlashCommand("profile", "Checks/Sets up a Valorant Profile for the User")]
     public async Task ProfileCommand(InteractionContext com)
@@ -392,15 +427,15 @@ public class ValCommandModule : ApplicationCommandModule
             });
 
 
-            await com.Member.SendMessageAsync(BuildSimpleEmbed("It seems that I don't have a profile for you."));
+            await com.Member.SendMessageAsync(comfunc.BuildSimpleEmbed("It seems that I don't have a profile for you."));
             await com.Member.SendMessageAsync(CreateProfileButton);
-            await com.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("I have sent you a DM to finalize setup!"));
+            await com.CreateResponseAsync(comfunc.BuildSimpleEmbed("I've sent you a DM to finalize setup!"));
         }
         else
         {
-            TaskCompletionSource<string> rankSetTask = new TaskCompletionSource<string>();
-            TaskCompletionSource<string> mainSetTask = new TaskCompletionSource<string>();
-            var pm = new ProfileManager(rankSetTask, mainSetTask);
+            Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+            Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+            var pm = new ProfileManager(_rankSetTasks, _mainSetTasks);
 
             await pm.BuildProfile(com.Interaction, com);
 
@@ -416,16 +451,16 @@ public class ValCommandModule : ApplicationCommandModule
         {
             File.Delete("Data/UserIDs/" + playerID + ".json");
         }
-        await com.CreateResponseAsync(BuildSimpleEmbed("Profile Deleted!"));
+        await com.CreateResponseAsync(comfunc.BuildSimpleEmbed("Profile Deleted!"));
     }
 
     [ContextMenu(ApplicationCommandType.UserContextMenu, "View Valorant Profile")]
     public async Task UserMenu(ContextMenuContext com) 
     {
-        TaskCompletionSource<string> rankSetTask = new TaskCompletionSource<string>();
-        TaskCompletionSource<string> mainSetTask = new TaskCompletionSource<string>();
-        var pm = new ProfileManager(rankSetTask, mainSetTask);
+        Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+        Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+        var pm = new ProfileManager(_rankSetTasks, _mainSetTasks);
 
-        await pm.BuildProfile(com.Interaction);
+        await pm.BuildProfile(com.Interaction, contcom: com);
     }
 }

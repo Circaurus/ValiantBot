@@ -5,6 +5,7 @@ using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using System.Text.Json;
 using OpenAI_API;
+using DSharpPlus.Entities;
 
 namespace ValiantBot
 {
@@ -36,7 +37,7 @@ namespace ValiantBot
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
-
+            
             //Enable Interactivity Module
             discord.UseInteractivity(new InteractivityConfiguration()
             {
@@ -48,12 +49,29 @@ namespace ValiantBot
             var slash = discord.UseSlashCommands();
             slash.RegisterCommands<ValCommandModule>(900451370761605220);
 
-            TaskCompletionSource<string> rankSetTask = new TaskCompletionSource<string>();
-            TaskCompletionSource<string> mainSetTask = new TaskCompletionSource<string>();
+            DiscordActivity activity = new();
+            activity.Name = "ball with Brimstone";
+            activity.ActivityType = ActivityType.Streaming;
+            discord.Ready += async (client, readyEventArgs) =>
+                await discord.UpdateStatusAsync(activity);
+
+            Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+            Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
             //Handle Button Presses
             discord.ComponentInteractionCreated += async (s, e) =>
             {
-                var pm = new ProfileManager(rankSetTask, mainSetTask);
+                string userId = e.User.Id.ToString();
+                if (!_rankSetTasks.ContainsKey(userId))
+                {
+                    _rankSetTasks[userId] = new TaskCompletionSource<string>();
+                }
+
+                if (!_mainSetTasks.ContainsKey(userId))
+                {
+                    _mainSetTasks[userId] = new TaskCompletionSource<string>();
+                }
+
+                var pm = new ProfileManager(_rankSetTasks, _mainSetTasks);
                 await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
                 switch (e.Id)
                 {
@@ -64,11 +82,11 @@ namespace ValiantBot
                 if (e.Values[0] != null & e.Values[0].Contains("rank"))
                 {
                     //await pm.GetSetRanks(e, e.Values[0]);
-                    rankSetTask.SetResult(e.Values[0].Split('_').Last());
+                    _rankSetTasks[userId].SetResult(e.Values[0].Split('_').Last());
                 }
                 else if (e.Values[0] != null & e.Values[0].Contains("agent"))
                 {
-                    mainSetTask.SetResult(e.Values[0].Split('_').Last());
+                    _mainSetTasks[userId].SetResult(e.Values[0].Split('_').Last());
                 }
             };
 
