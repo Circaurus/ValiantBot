@@ -26,7 +26,7 @@ public class ProfileManager : CommonFunctions
     private Dictionary<string, TaskCompletionSource<string>> _mainSetTask;
 
 
-    public ProfileManager(Dictionary<string, TaskCompletionSource<string>> rankSetTask, Dictionary<string, TaskCompletionSource<string>> mainSetTask)
+    public ProfileManager(Dictionary<string, TaskCompletionSource<string>> rankSetTask = null, Dictionary<string, TaskCompletionSource<string>> mainSetTask = null)
     {
         _rankSetTask = rankSetTask;
         _mainSetTask = mainSetTask;
@@ -433,9 +433,7 @@ public class ValCommandModule : ApplicationCommandModule
         }
         else
         {
-            Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
-            Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
-            var pm = new ProfileManager(_rankSetTasks, _mainSetTasks);
+            var pm = new ProfileManager();
 
             await pm.BuildProfile(com.Interaction, com);
 
@@ -457,9 +455,7 @@ public class ValCommandModule : ApplicationCommandModule
     [ContextMenu(ApplicationCommandType.UserContextMenu, "View Valorant Profile")]
     public async Task UserMenu(ContextMenuContext com) 
     {
-        Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
-        Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
-        var pm = new ProfileManager(_rankSetTasks, _mainSetTasks);
+        var pm = new ProfileManager();
 
         await pm.BuildProfile(com.Interaction, contcom: com);
     }
