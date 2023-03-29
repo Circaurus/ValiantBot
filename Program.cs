@@ -25,16 +25,16 @@ namespace ValiantBot
         static async Task MainAsync()
         {
 
-            /*string fileName = Path.Combine(Environment.CurrentDirectory, "dconfig.json");
+            string fileName = Path.Combine(Environment.CurrentDirectory, "dconfig.json");
             using FileStream openStream = File.OpenRead(fileName);
             DConfig? dConfig =
-                await JsonSerializer.DeserializeAsync<DConfig>(openStream);*/
+                await JsonSerializer.DeserializeAsync<DConfig>(openStream);
 
             
             //Initialize Client
             var discord = new DiscordClient(new DiscordConfiguration()
             {
-                Token = "MTA1NTE0MjA5ODc0MDk3MzU2OA.GuwgYM.m5A-rEuft-DPCXWciJXh3wHFV_96PbhHdbK6Ac",
+                Token = dConfig.ClientToken,
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
