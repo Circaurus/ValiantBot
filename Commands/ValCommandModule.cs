@@ -52,6 +52,7 @@ public class ProfileManager : CommonFunctions
         await SetUsername(com.Interaction);
         await SetRank(com.Interaction);
         await SetMain(com.Interaction);
+        await SetClip(com.Interaction);
         await BuildProfile(com.Interaction);
     }
 
@@ -283,7 +284,33 @@ public class ProfileManager : CommonFunctions
         await WriteStream.DisposeAsync();
     }
 
-    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null)
+    public async Task SetClip(DiscordInteraction com)
+    {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string playerID = com.User.Id.ToString();
+
+        string fileName = "Data/UserIDs/" + playerID + ".json";
+        using FileStream openStream = File.OpenRead(fileName);
+        PlayerProfile? playerProfile =
+            await JsonSerializer.DeserializeAsync<PlayerProfile>(openStream);
+        await openStream.DisposeAsync();
+
+        await com.Channel.SendMessageAsync(BuildSimpleEmbed("Please paste a link to your favorite clip of yours.\n   (I do not support uploaded files, only links.)"));
+        var result = await com.Channel.GetNextMessageAsync(m =>
+        {
+            playerProfile.FavClip = m.Content;
+            return m.Content.ToLower() != null;
+        });
+        if (!result.TimedOut) await com.Channel.SendMessageAsync(BuildSimpleEmbed("Favorite Clip Set!"));
+
+        string writeFileName = "Data/UserIDs/" + playerID + ".json";
+        using FileStream WriteStream = File.Create(writeFileName);
+        await JsonSerializer.SerializeAsync(WriteStream, playerProfile, options);
+        await WriteStream.DisposeAsync();
+    }
+
+
+    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null, CancellationToken cancellationToken = default)
     {
         string playerID;
         string playerUsername;
@@ -291,6 +318,13 @@ public class ProfileManager : CommonFunctions
         {
             playerID = contcom.TargetUser.Id.ToString();
             playerUsername = contcom.TargetUser.Username;
+
+            if (!File.Exists("Data/UserIDs/" + playerID + ".json"))
+            {
+                await contcom.CreateResponseAsync(BuildSimpleEmbed("This user does not have a profile set up."));
+
+                return;
+            }
         }
         else
         {
@@ -376,14 +410,25 @@ public class ProfileManager : CommonFunctions
             .WithThumbnail(ranks[playerProfile.ValRank])
             .WithImageUrl(agents[playerProfile.ValMain])
             .WithColor(color);
-        
-        if (intcom == null)
+
+        var CreateClipButton = new DiscordMessageBuilder()
+            .WithContent(playerProfile.FavClip);
+            
+
+        if (intcom == null & contcom == null)
         {
             await com.Channel.SendMessageAsync(embuilder);
+            await com.Channel.SendMessageAsync(CreateClipButton);
+        }
+        else if (intcom != null & contcom == null)
+        {
+            await intcom.CreateResponseAsync(embuilder);
+            await intcom.Channel.SendMessageAsync(CreateClipButton);
         }
         else
         {
-            await intcom.CreateResponseAsync(embuilder);
+            await contcom.CreateResponseAsync(embuilder);
+            await contcom.Channel.SendMessageAsync(CreateClipButton);
         }
         
     }
@@ -427,7 +472,7 @@ public class ValCommandModule : ApplicationCommandModule
             });
 
 
-            await com.Member.SendMessageAsync(comfunc.BuildSimpleEmbed("It seems that I don't have a profile for you."));
+            await com.Member.SendMessageAsync(comfunc.BuildSimpleEmbed("It seems that I don't have a profile for you. If you would like to create one, please have your VALORANT username and your own favorite clip ready!"));
             await com.Member.SendMessageAsync(CreateProfileButton);
             await com.CreateResponseAsync(comfunc.BuildSimpleEmbed("I've sent you a DM to finalize setup!"));
         }
