@@ -1,11 +1,10 @@
 ﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using System.Text.Json;
-using OpenAI_API;
-using DSharpPlus.Entities;
 
 namespace ValiantBot
 {
@@ -30,7 +29,7 @@ namespace ValiantBot
             DConfig? dConfig =
                 await JsonSerializer.DeserializeAsync<DConfig>(openStream);
 
-            
+
             //Initialize Client
             var discord = new DiscordClient(new DiscordConfiguration()
             {
@@ -38,7 +37,7 @@ namespace ValiantBot
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
-            
+
             //Enable Interactivity Module
             discord.UseInteractivity(new InteractivityConfiguration()
             {

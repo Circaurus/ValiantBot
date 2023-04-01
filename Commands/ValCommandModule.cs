@@ -4,12 +4,6 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using System.Text.Json;
-
-public class GPTModule
-{
-    
-}
-
 public class PlayerProfile
 {
     public string? ValName { get; set; }
@@ -20,8 +14,6 @@ public class PlayerProfile
 
 public class ProfileManager : CommonFunctions
 {
-    string? currentRank;
-
     private Dictionary<string, TaskCompletionSource<string>> _rankSetTask;
     private Dictionary<string, TaskCompletionSource<string>> _mainSetTask;
 
@@ -310,7 +302,7 @@ public class ProfileManager : CommonFunctions
     }
 
 
-    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null, CancellationToken cancellationToken = default)
+    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null)
     {
         string playerID;
         string playerUsername;
@@ -331,7 +323,7 @@ public class ProfileManager : CommonFunctions
             playerID = com.User.Id.ToString();
             playerUsername = com.User.Username;
         }
-        
+
 
         string fileName = "Data/UserIDs/" + playerID + ".json";
         using FileStream openStream = File.OpenRead(fileName);
@@ -411,26 +403,26 @@ public class ProfileManager : CommonFunctions
             .WithImageUrl(agents[playerProfile.ValMain])
             .WithColor(color);
 
-        var CreateClipButton = new DiscordMessageBuilder()
+        var CreateClip = new DiscordMessageBuilder()
             .WithContent(playerProfile.FavClip);
-            
+
 
         if (intcom == null & contcom == null)
         {
             await com.Channel.SendMessageAsync(embuilder);
-            await com.Channel.SendMessageAsync(CreateClipButton);
+            await com.Channel.SendMessageAsync(CreateClip);
         }
         else if (intcom != null & contcom == null)
         {
             await intcom.CreateResponseAsync(embuilder);
-            await intcom.Channel.SendMessageAsync(CreateClipButton);
+            await intcom.Channel.SendMessageAsync(CreateClip);
         }
         else
         {
             await contcom.CreateResponseAsync(embuilder);
-            await contcom.Channel.SendMessageAsync(CreateClipButton);
+            await com.Channel.SendMessageAsync(playerProfile.FavClip);
         }
-        
+
     }
 }
 
@@ -498,7 +490,7 @@ public class ValCommandModule : ApplicationCommandModule
     }
 
     [ContextMenu(ApplicationCommandType.UserContextMenu, "View Valorant Profile")]
-    public async Task UserMenu(ContextMenuContext com) 
+    public async Task UserMenu(ContextMenuContext com)
     {
         var pm = new ProfileManager();
 
