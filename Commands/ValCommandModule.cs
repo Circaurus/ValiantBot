@@ -63,7 +63,12 @@ public class ProfileManager : CommonFunctions
         var result = await com.Channel.GetNextMessageAsync(m =>
         {
             playerProfile.ValName = m.Content;
-            return m.Content.ToLower() != null;
+            if (m.Content.ToLower() != null && !m.Author.IsBot)
+            {
+                return true;
+            }
+            return false;
+            //return m.Content.ToLower() != null;
         });
         if (!result.TimedOut) await com.Channel.SendMessageAsync(BuildSimpleEmbed("Username Set!"));
 
@@ -291,7 +296,11 @@ public class ProfileManager : CommonFunctions
         var result = await com.Channel.GetNextMessageAsync(m =>
         {
             playerProfile.FavClip = m.Content;
-            return m.Content.ToLower() != null;
+            if (m.Content.ToLower() != null && !m.Author.IsBot)
+            {
+                return true;
+            }
+            return false;
         });
         if (!result.TimedOut) await com.Channel.SendMessageAsync(BuildSimpleEmbed("Favorite Clip Set!"));
 

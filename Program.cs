@@ -57,6 +57,7 @@ namespace ValiantBot
 
             Dictionary<string, TaskCompletionSource<string>> _rankSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
             Dictionary<string, TaskCompletionSource<string>> _mainSetTasks = new Dictionary<string, TaskCompletionSource<string>>();
+            
             //Handle Button Presses
             discord.ComponentInteractionCreated += async (s, e) =>
             {
