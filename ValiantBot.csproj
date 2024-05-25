@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\UserProfiles\" />
     <Folder Include="Data\NewFolder\" />
     <Folder Include="Data\UserIDs\" />
   </ItemGroup>

@@ -18,7 +18,7 @@ public class ProfileManager : CommonFunctions
     private Dictionary<string, TaskCompletionSource<string>> _mainSetTask;
 
 
-    public ProfileManager(Dictionary<string, TaskCompletionSource<string>> rankSetTask = null, Dictionary<string, TaskCompletionSource<string>> mainSetTask = null)
+    public ProfileManager(Dictionary<string, TaskCompletionSource<string>>? rankSetTask = null, Dictionary<string, TaskCompletionSource<string>>? mainSetTask = null)
     {
         _rankSetTask = rankSetTask;
         _mainSetTask = mainSetTask;
@@ -311,7 +311,7 @@ public class ProfileManager : CommonFunctions
     }
 
 
-    public async Task BuildProfile(DiscordInteraction com, InteractionContext intcom = null, ContextMenuContext contcom = null)
+    public async Task BuildProfile(DiscordInteraction com, InteractionContext? intcom = null, ContextMenuContext? contcom = null)
     {
         string playerID;
         string playerUsername;
@@ -340,96 +340,28 @@ public class ProfileManager : CommonFunctions
             await JsonSerializer.DeserializeAsync<PlayerProfile>(openStream);
         await openStream.DisposeAsync();
 
-        var ranks = new Dictionary<string, string>()
-        {
-            {"iron", "https://media.discordapp.net/attachments/954563370747588660/1086274849242087484/Iron_3_Rank.png"},
-            {"bronze", "https://media.discordapp.net/attachments/954563370747588660/1086274848218697778/Bronze_3_Rank.png"},
-            {"silver", "https://media.discordapp.net/attachments/954563370747588660/1085974827850027121/Silver_3_Rank.png"},
-            {"gold", "https://media.discordapp.net/attachments/954563370747588660/1086274848738791474/Gold_3_Rank.png"},
-            {"platinum", "https://media.discordapp.net/attachments/954563370747588660/1086274849464406109/Platinum_3_Rank.png"},
-            {"diamond", "https://media.discordapp.net/attachments/954563370747588660/1086274848516485150/Diamond_3_Rank.png"},
-            {"ascendent", "https://media.discordapp.net/attachments/954563370747588660/1086274847946047508/Ascendant_3_Rank.png"},
-            {"immortal", "https://media.discordapp.net/attachments/954563370747588660/1086274848977858640/Immortal_3_Rank.png"},
-            {"radiant", "https://media.discordapp.net/attachments/954563370747588660/1086274849657335878/Radiant_Rank.png"}
-        };
-
-        var agents = new Dictionary<string, string>()
-        {
-            {"jett", "https://media.discordapp.net/attachments/954563370747588660/1088255578217914511/jett.png?width=900&height=506"},
-            {"phoenix", "https://media.discordapp.net/attachments/954563370747588660/1088255579996307496/phoenix.jpg?width=1015&height=571"},
-            {"raze", "https://media.discordapp.net/attachments/954563370747588660/1088255623814197319/raze.jpg?width=1015&height=571"},
-            {"neon", "https://media.discordapp.net/attachments/954563370747588660/1088255579404910692/neon.jpg?width=1015&height=571"},
-            {"reyna", "https://media.discordapp.net/attachments/954563370747588660/1088255624195866794/reyna.jpg?width=1015&height=571"},
-            {"yoru", "https://media.discordapp.net/attachments/954563370747588660/1088255876797841448/yoru.jpg?width=1015&height=571"},
-            {"sova", "https://media.discordapp.net/attachments/954563370747588660/1088255625512878230/sova.jpg?width=1015&height=571"},
-            {"gekko", "https://media.discordapp.net/attachments/954563370747588660/1088256819580907520/gekko.jpg?width=895&height=571"},
-            {"fade", "https://media.discordapp.net/attachments/954563370747588660/1088257058152919040/fade.jpg?width=1015&height=571"},
-            {"kayo", "https://media.discordapp.net/attachments/954563370747588660/1088255578591199332/kayo.jpg?width=1015&height=571"},
-            {"skye", "https://media.discordapp.net/attachments/954563370747588660/1088255624913105023/skye.jpg?width=1015&height=571"},
-            {"breach", "https://media.discordapp.net/attachments/954563370747588660/1088257836229853184/breach.jpg?width=1015&height=571"},
-            {"brimstone", "https://media.discordapp.net/attachments/954563370747588660/1088257874851008633/valorant-agent-brimstone.jpg?width=1142&height=571"},
-            {"viper", "https://media.discordapp.net/attachments/954563370747588660/1088256147963773029/viper.jpg?width=1015&height=571"},
-            {"astra", "https://media.discordapp.net/attachments/954563370747588660/1088255754269642822/astra.jpg?width=1015&height=571"},
-            {"harbor", "https://media.discordapp.net/attachments/954563370747588660/1088256148248993894/Valorant-character-harbor.jpg?width=1015&height=571"},
-            {"omen", "https://media.discordapp.net/attachments/954563370747588660/1088255579685912606/omen.jpg?width=1015&height=571"},
-            {"sage", "https://media.discordapp.net/attachments/954563370747588660/1088255624518832168/sage.png?width=987&height=555"},
-            {"chamber", "https://media.discordapp.net/attachments/954563370747588660/1088255754504507472/chamber.jpg?width=1015&height=571"},
-            {"killjoy", "https://media.discordapp.net/attachments/954563370747588660/1088255578981277758/killjoy.jpg?width=1015&height=571"},
-            {"cypher", "https://media.discordapp.net/attachments/954563370747588660/1088255754735198270/cypher.jpg?width=1015&height=571"},
-        };
-
-        var colors = new Dictionary<string, string>()
-        {
-            {"jett", "bababa"},
-            {"phoenix", "e25822"},
-            {"raze", "ff9245"},
-            {"neon", "45d7ff"},
-            {"reyna", "8700b8"},
-            {"yoru", "3679ff"},
-            {"sova", "296dff"},
-            {"gekko", "59ff5f"},
-            {"fade", "ff0000"},
-            {"kayo", "b057ff"},
-            {"skye", "33bd2b"},
-            {"breach", "ff7b00"},
-            {"brimstone", "ff7b00"},
-            {"viper", "08e800"},
-            {"astra", "b300ff"},
-            {"harbor", "59a9ff"},
-            {"omen", "6753b5"},
-            {"sage", "40ffec"},
-            {"chamber", "ffdd00"},
-            {"killjoy", "eeff00"},
-            {"cypher", "ffffff"},
-        };
-
-        DiscordColor color = new DiscordColor(colors[playerProfile.ValMain]);
-
-        var embuilder = new DiscordEmbedBuilder()
-            .WithTitle(playerUsername + "'s Valorant Profile")
-            .WithFooter(playerProfile.ValName)
-            .WithThumbnail(ranks[playerProfile.ValRank])
-            .WithImageUrl(agents[playerProfile.ValMain])
-            .WithColor(color);
-
         var CreateClip = new DiscordMessageBuilder()
             .WithContent(playerProfile.FavClip);
 
+        var fs = new FileStream(".\\Data\\AgentImages\\" + playerProfile.ValMain + ".jpg", FileMode.Open, FileAccess.Read);
+
+        var msg = new DiscordMessageBuilder()
+            .AddFile(playerProfile.ValMain + ".jpg", fs);
 
         if (intcom == null & contcom == null)
         {
-            await com.Channel.SendMessageAsync(embuilder);
-            await com.Channel.SendMessageAsync(CreateClip);
+            //await com.Channel.SendMessageAsync(embuilder);
+            //await com.Channel.SendMessageAsync(CreateClip);
         }
         else if (intcom != null & contcom == null)
         {
-            await intcom.CreateResponseAsync(embuilder);
-            await intcom.Channel.SendMessageAsync(CreateClip);
+            //await intcom.CreateResponseAsync(embuilder);
+            //await intcom.Channel.SendMessageAsync(msg);
         }
         else
         {
-            await contcom.CreateResponseAsync(embuilder);
-            await com.Channel.SendMessageAsync(playerProfile.FavClip);
+            //await contcom.CreateResponseAsync(embuilder);
+            //await com.Channel.SendMessageAsync(playerProfile.FavClip);
         }
 
     }
@@ -498,10 +430,28 @@ public class ValCommandModule : ApplicationCommandModule
         await com.CreateResponseAsync(comfunc.BuildSimpleEmbed("Profile Deleted!"));
     }
 
+    [SlashCommand("test", "test command for WIP commands")]
+    public async Task TestCommand(InteractionContext com)
+    {
+        string playerID = com.Interaction.User.Id.ToString();
+
+        var fs = new FileStream(".\\Data\\AgentImages\\yoru.jpg", FileMode.Open, FileAccess.Read);
+
+        var msg = new DiscordMessageBuilder()
+            .AddFile("yoru.jpg", fs);
+
+        var testembuilder = new DiscordEmbedBuilder()
+            .WithImageUrl("attachment://yoru.jpg");
+
+        await com.Channel.SendMessageAsync(msg);
+        //await com.CreateResponseAsync();
+
+    }
+
     [ContextMenu(ApplicationCommandType.UserContextMenu, "View Valorant Profile")]
     public async Task UserMenu(ContextMenuContext com)
     {
-        var pm = new ProfileManager();
+        ProfileManager pm = new ProfileManager();
 
         await pm.BuildProfile(com.Interaction, contcom: com);
     }
