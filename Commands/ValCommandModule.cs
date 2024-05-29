@@ -42,7 +42,7 @@ namespace ValiantBot
             {
                 await com.Channel.SendMessageAsync("test");
                 //var result = await val.GetMatchesAsync();
-                var result = await val.GetMatchesByPUUIDAsyncV3("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 10, "HDEV-81480065-9282-413b-84d3-1eff20a7aa63");
+                var result = await val.GetMatchesByPUUIDAsyncV3("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 10, GetConfig().Result.ValToken);
                 if (result != null)
                 {
                     for (int gameCount = 0; gameCount < result.data.Count; gameCount++)
@@ -114,7 +114,7 @@ namespace ValiantBot
             {
                 await com.Channel.SendMessageAsync("test");
                 //var result = await val.GetMatchesAsync();
-                var result = await val.GetLifetimeMatches("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 30, "HDEV-81480065-9282-413b-84d3-1eff20a7aa63");
+                var result = await val.GetLifetimeMatches("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 30, GetConfig().Result.ValToken);
                 if (result != null)
                 {
                     
