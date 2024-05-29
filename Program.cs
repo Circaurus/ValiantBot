@@ -11,6 +11,7 @@ namespace ValiantBot
     public class DConfig
     {
         public string? ClientToken { get; set; }
+        public string? ValToken { get; set; }
     }
 
 
