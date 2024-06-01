@@ -4,6 +4,8 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using System;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using ValorantNET;
@@ -16,6 +18,7 @@ namespace ValiantBot
 
     public class ValorantApiFunctions
     {
+
         public async Task<DConfig> GetConfig()
         {
             string fileName = Path.Combine(Environment.CurrentDirectory, "dconfig.json");
@@ -36,61 +39,30 @@ namespace ValiantBot
             }
         }
 
-        public void GetMatches(InteractionContext com)
-        {
-            var task = new Task(async () =>
-            {
-                await com.Channel.SendMessageAsync("test");
-                //var result = await val.GetMatchesAsync();
-                var result = await val.GetMatchesByPUUIDAsyncV3("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 10, GetConfig().Result.ValToken);
-                if (result != null)
-                {
-                    for (int gameCount = 0; gameCount < result.data.Count; gameCount++)
-                    {
-                        for (int i = 0; i < result.data[0].players.all_players.Count; i++)
-                        {
-                            if (result.data[gameCount].players.all_players[i].name == "VPS Circaurus")
-                            {
-                                Console.WriteLine(result.data[gameCount].players.all_players[i].character);
-                            }
-                            //Console.WriteLine(result.data[0].players.all_players[i].name);
-                        }
-                    }
-                    
-                    //Console.WriteLine(result.data[0].players.all_players[0]);
-                    //ShowProp(result.data[0].metadata, com);
-                    //Console.WriteLine(result);
-                    //await com.CreateResponseAsync(result.data[0].metadata.ToString());
-                    //await com.Channel.SendMessageAsync(result.ToString());
-                }
-            });
-            task.Start();
-        }
-
-
-        
-
         public async Task<PlayerInfo> GetPlayerData()
         {
             var result = await val.GetPlayerInfo("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 30, GetConfig().Result.ValToken);
+            var result2 = await val.GetPlayerMMR("28d8d9a6-811e-5cec-99bc-abb58d0d191e", GetConfig().Result.ValToken);
+
             if (result != null)
             {
-                Console.WriteLine(result.data[0].stats.character.name);
+                result.data[0].currenttier_patched = result2.data.current_data.currenttierpatched;
+                Console.WriteLine(result.data[0].currenttier_patched);
             }
             return result;
         }
 
         //Returns the 3 most played agents for a given user
-        public async Task<string[]> GetMostPlayedAgents()
+        public async Task<string[]> GetMostPlayedAgents(PlayerInfo playerInfo)
         {
             string[] commonAgents = new string[3];
 
-            var result = await val.GetLifetimeMatches("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 30, GetConfig().Result.ValToken);
+            var result = playerInfo;
             if (result != null)
             {
-                string[] playedAgents = new string[result.data.Count];
+                string[] playedAgents = new string[result.data.Length];
 
-                for (int gameCount = 0; gameCount < result.data.Count; gameCount++)
+                for (int gameCount = 0; gameCount < result.data.Length; gameCount++)
                 {
                     playedAgents[gameCount] = result.data[gameCount].stats.character.name;
                 }
@@ -102,43 +74,31 @@ namespace ValiantBot
 
                 for (int i = 0; i < 3; i++)
                 {
-                    commonAgents[i] = query.ToArray()[i].Item;
+                    commonAgents[i] = query.ToArray()[i].Item.ToLower();
                     //Console.WriteLine($"{commonAgents[i]}");
                 }
             }
             return commonAgents;
         }
-        public void GetLifetimeMatches(InteractionContext com)
+
+        public async Task<string> GetPlayerRank(PlayerInfo playerInfo)
         {
-            var task = new Task(async () =>
+            var result = playerInfo;
+
+            if (result != null)
             {
-                await com.Channel.SendMessageAsync("test");
-                //var result = await val.GetMatchesAsync();
-                var result = await val.GetLifetimeMatches("28d8d9a6-811e-5cec-99bc-abb58d0d191e", 30, GetConfig().Result.ValToken);
-                if (result != null)
-                {
-                    
-
-                    //GetMostPlayedAgents(playedAgents);
-
-                    //Console.WriteLine(query);
-
-                    //Console.WriteLine(result.data[0].players.all_players[0]);
-                    //ShowProp(result.data[0].metadata, com);
-                    //Console.WriteLine(result);
-                    //await com.CreateResponseAsync(result.data[0].metadata.ToString());
-                    //await com.Channel.SendMessageAsync(result.ToString());
-                }
-            });
-            task.Start();
+                return result.data[0].currenttier_patched.Split(" ").First().ToLower();
+            }
+            return "No Value Returned";
         }
+
     }
 
     public class PlayerProfile
     {
         public string? ValName { get; set; }
         public string? ValRank { get; set; }
-        public string? ValMain { get; set; }
+        public string[]? ValMains { get; set; }
         public string? FavClip { get; set; }
     }
 
@@ -165,8 +125,8 @@ namespace ValiantBot
             {
                 ValName = "Username and tag not set",
                 ValRank = "Rank not set",
-                ValMain = "Main not set",
-                FavClip = "link not set"
+                ValMains = new string[3] {"No Mains Set", "No second set", "no third set"},
+                FavClip = "li7nk not set"
             };
 
             string fileName = "Data/UserIDs/" + playerID + ".json";
@@ -174,10 +134,26 @@ namespace ValiantBot
             await JsonSerializer.SerializeAsync(createStream, playerProfile, options);
             await createStream.DisposeAsync();
 
+
+            
+
+
+
+
             await SetUsername(com.Interaction);
-            await SetRank(com.Interaction);
-            await SetMain(com.Interaction);
-            await SetClip(com.Interaction);
+
+            //Set Region
+
+            ValorantApiFunctions valAPI = new ValorantApiFunctions();
+
+            PlayerInfo playerInfo = new PlayerInfo();
+
+            playerInfo = await valAPI.GetPlayerData();
+
+
+
+            await SetRank(com.Interaction, playerInfo, valAPI);
+            await SetMain(com.Interaction, playerInfo, valAPI);
             await BuildProfile(com.Interaction);
         }
 
@@ -210,7 +186,7 @@ namespace ValiantBot
             await WriteStream.DisposeAsync();
         }
 
-        public async Task SetRank(DiscordInteraction com)
+        public async Task SetRank(DiscordInteraction com, PlayerInfo playerInfo, ValorantApiFunctions valAPI)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
 
@@ -270,9 +246,10 @@ namespace ValiantBot
             // Make the dropdown
             var dropdown = new DiscordSelectComponent("dropdown", null, RankOptions, false, 1, 1);
 
-            await com.Channel.SendMessageAsync(BuildDropMessage("Please select your rank.", dropdown));
+            //await com.Channel.SendMessageAsync(BuildDropMessage("Please select your rank.", dropdown));
 
-            playerProfile.ValRank = _rankSetTask[playerID].Task.Result;
+            //playerProfile.ValRank = _rankSetTask[playerID].Task.Result;
+            playerProfile.ValRank = await valAPI.GetPlayerRank(playerInfo);
 
             await com.Channel.SendMessageAsync(BuildSimpleEmbed("Rank Set!"));
 
@@ -287,7 +264,7 @@ namespace ValiantBot
             await WriteStream.DisposeAsync();
         }
 
-        public async Task SetMain(DiscordInteraction com)
+        public async Task SetMain(DiscordInteraction com, PlayerInfo playerInfo, ValorantApiFunctions valAPI)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
 
@@ -392,16 +369,14 @@ namespace ValiantBot
                 _mainSetTask[playerID] = new TaskCompletionSource<string>();
             }
 
-            // Make the dropdown
-            var dropdown = new DiscordSelectComponent("dropdown", null, MainOptions, false, 1, 1);
+            string[] agents = await valAPI.GetMostPlayedAgents(playerInfo);
 
-            await com.Channel.SendMessageAsync(BuildDropMessage("Please select your main.", dropdown));
+            for (int i = 0; i < 3; i++)
+            {
+                playerProfile.ValMains[i] = agents[i].ToLower();
+            }
 
-            //playerProfile.ValMain = _mainSetTask[playerID].Task.Result;
-            ValorantApiFunctions valAPI = new ValorantApiFunctions();
-
-            string[] agents = await valAPI.GetMostPlayedAgents();
-            playerProfile.ValMain = agents[0];
+            
 
 
             await com.Channel.SendMessageAsync(BuildSimpleEmbed("Main Set!"));
@@ -410,35 +385,6 @@ namespace ValiantBot
             {
                 _mainSetTask.Remove(playerID);
             }
-
-            string writeFileName = "Data/UserIDs/" + playerID + ".json";
-            using FileStream WriteStream = File.Create(writeFileName);
-            await JsonSerializer.SerializeAsync(WriteStream, playerProfile, options);
-            await WriteStream.DisposeAsync();
-        }
-
-        public async Task SetClip(DiscordInteraction com)
-        {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            string playerID = com.User.Id.ToString();
-
-            string fileName = "Data/UserIDs/" + playerID + ".json";
-            using FileStream openStream = File.OpenRead(fileName);
-            PlayerProfile? playerProfile =
-                await JsonSerializer.DeserializeAsync<PlayerProfile>(openStream);
-            await openStream.DisposeAsync();
-
-            await com.Channel.SendMessageAsync(BuildSimpleEmbed("Please paste a link to your favorite clip of yours.\n   (I do not support uploaded files, only links.)"));
-            var result = await com.Channel.GetNextMessageAsync(m =>
-            {
-                playerProfile.FavClip = m.Content;
-                if (m.Content.ToLower() != null && !m.Author.IsBot)
-                {
-                    return true;
-                }
-                return false;
-            });
-            if (!result.TimedOut) await com.Channel.SendMessageAsync(BuildSimpleEmbed("Favorite Clip Set!"));
 
             string writeFileName = "Data/UserIDs/" + playerID + ".json";
             using FileStream WriteStream = File.Create(writeFileName);
@@ -481,10 +427,10 @@ namespace ValiantBot
             var CreateClip = new DiscordMessageBuilder()
                 .WithContent(playerProfile.FavClip);
 
-            var fs = new FileStream(".\\Data\\AgentImages\\" + playerProfile.ValMain + ".jpg", FileMode.Open, FileAccess.Read);
+            var fs = new FileStream(".\\Data\\AgentImages\\" + playerProfile.ValMains[0] + ".jpg", FileMode.Open, FileAccess.Read);
 
             var msg = new DiscordMessageBuilder()
-                .AddFile(playerProfile.ValMain + ".jpg", fs);
+                .AddFile(playerProfile.ValMains[0] + ".jpg", fs);
 
             if (intcom == null & contcom == null)
             {
@@ -568,6 +514,7 @@ namespace ValiantBot
             await com.CreateResponseAsync(comfunc.BuildSimpleEmbed("Profile Deleted!"));
         }
 
+
         [SlashCommand("test", "test command for WIP commands")]
         public async Task TestCommand(InteractionContext com)
         {
@@ -581,20 +528,9 @@ namespace ValiantBot
             var testembuilder = new DiscordEmbedBuilder()
                 .WithImageUrl("attachment://yoru.jpg");
 
-            ValorantApiFunctions valAPI = new ValorantApiFunctions();
+            ValorantApiFunctions val = new ValorantApiFunctions();
 
-            string[] agents = await valAPI.GetMostPlayedAgents();
-
-            foreach (string agent in agents)
-            {
-                //Console.WriteLine(agent);
-            }
-
-           Console.WriteLine(valAPI.GetPlayerData());
-
-
-            //await com.Channel.SendMessageAsync(msg);
-            //await com.CreateResponseAsync();
+            val.GetPlayerData();
 
         }
 

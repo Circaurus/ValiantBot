@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\NewFolder\**" />
+    <EmbeddedResource Remove="Data\NewFolder\**" />
+    <None Remove="Data\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.4.6">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
@@ -23,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="Data\UserProfiles\" />
-    <Folder Include="Data\NewFolder\" />
     <Folder Include="Data\UserIDs\" />
   </ItemGroup>
 
