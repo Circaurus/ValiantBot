@@ -8,15 +8,37 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.3.0" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.3.0" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.3.0" />
-    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.3.0" />
+    <Compile Remove="Data\NewFolder\**" />
+    <EmbeddedResource Remove="Data\NewFolder\**" />
+    <None Remove="Data\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\NewFolder\" />
+    <PackageReference Include="DSharpPlus" Version="4.4.6">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.6">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.4.6" />
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.6" />
+    <PackageReference Include="System.Net.Security" Version="4.3.2">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\UserProfiles\" />
     <Folder Include="Data\UserIDs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\ValorantNet\Active Dev\Valorant-NET\ValorantNET\bin\Debug\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="ValorantNET">
+      <HintPath>..\..\ValorantNet\Active Dev\Valorant-NET\ValorantNET\bin\Debug\netstandard2.0\ValorantNET.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

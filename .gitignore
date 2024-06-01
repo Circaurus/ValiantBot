@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 dconfig.json
 /dconfig.json
+/application.json
+/dconfig.json
